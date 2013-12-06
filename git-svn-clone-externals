@@ -56,14 +56,23 @@ function do_clone()
 }
 
 function do_link()
-{
-    dir="$1"
+{        
+    dir="$1"    
+
     base="$(dirname $dir)"
-    (
+    (    
         mkdir -p "$base"
-        cd $base
+        cd $base            
+                                                            
+        link=$(basename $dir)
         rel=$(git rev-parse --show-cdup)
-        ln -sf ${rel}.git_externals/"$dir"
+        externalsTarget="${rel}".git_externals/"${dir}"
+
+        winlink=$(echo "$link" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
+        winrel=$(echo "$rel" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
+        winexternalsTarget=$(echo "$externalsTarget" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
+                    
+        cmd //c "mklink /D $winlink $winexternalsTarget"        
     )
 }
 
