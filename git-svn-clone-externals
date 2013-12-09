@@ -27,7 +27,7 @@ function do_clone()
         if [ -d "$local_directory" ]; then
             (
                 cd "$local_directory"
-                call git svn fetch --all
+                call git svn fetch -r HEAD --all
             )
         else
             tags="tags"
@@ -72,6 +72,10 @@ function do_link()
         winrel=$(echo "$rel" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
         winexternalsTarget=$(echo "$externalsTarget" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
                     
+        if [ -d "$link" ]; then
+            rmdir $link    
+        fi
+        
         cmd //c "mklink /D $winlink $winexternalsTarget"        
     )
 }
@@ -105,7 +109,8 @@ function is_excluded()
 }
 
 
-git svn show-externals | grep -vE '#|^$' | \
+#git svn show-externals | grep -vE '#|^$' | grep 'mobile' | \
+cat externals.cache | grep -vE '#|^$' | grep -v 'Mobile' | \
     sed 's/\(-r\)[ ]*\([0-9]\{1,\}\)/\1\2/' | \
     while read svn_externals
 do

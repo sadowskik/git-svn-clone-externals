@@ -8,7 +8,7 @@ find .git_externals -type d -name .git | while read gitdir; do
     if [ -d $dir ]; then
 	pushd $dir
 	echo $dir
-	git svn fetch
+	git svn fetch -r HEAD
 	git svn rebase
 	popd
     fi
