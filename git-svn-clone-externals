@@ -76,7 +76,8 @@ function do_link()
             rmdir $link    
         fi
         
-        cmd //c "mklink /D $winlink $winexternalsTarget"        
+        rm -f $winlink
+        cmd //c "D:\SysInternals\junction.exe $winlink $winexternalsTarget"
     )
 }
 
