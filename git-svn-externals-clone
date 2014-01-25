@@ -15,7 +15,7 @@ function call()
 }
 
 function do_clone()
-{
+{    
     test -d .git_externals || return 1
     module=`echo $remote_url|sed 's,\(.*\)\(/trunk\|/branch.*\|/tag.*\),\1,'`
     branch=`echo $remote_url|sed 's,\(.*\)\(/trunk\|/branch.*\|/tag.*\),\2,'|sed 's,^/,,'`
@@ -39,18 +39,14 @@ function do_clone()
             if [ "$module" = "$remote_url" ]; then
                 # URL does not contains any trunk, branches or tags part, so we dont need
                 # additional options for git-svn
-                call git svn clone -r HEAD "$module" "$local_directory"
+                call git svn clone -r HEAD "remote_url" "$local_directory"
             else
-                call git svn clone -r HEAD "$module" -T trunk -b $brch -t $tags "$local_directory"
+                call git svn clone -r HEAD "$remote_url" "$local_directory"
             fi
 
         fi
         (
-            branch="$(echo ${branch}|sed 's,/$,,')"
-            if [ -n "$branch" ]; then
-                cd "$local_directory"
-                call git reset --hard $branch
-            fi
+            echo ""
         )
     )
 }
@@ -61,6 +57,8 @@ function do_link()
 
     base="$(dirname $dir)"
     (    
+        echo $base
+
         mkdir -p "$base"
         cd $base            
                                                             
@@ -71,13 +69,15 @@ function do_link()
         winlink=$(echo "$link" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
         winrel=$(echo "$rel" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
         winexternalsTarget=$(echo "$externalsTarget" | sed 's/^\///' | sed 's/\//\\/g' | sed 's/^./\0/')
-                    
+        
+        echo "$link"
+
         if [ -d "$link" ]; then
             rmdir $link    
         fi
-        
+
         rm -f $winlink
-        cmd //c "D:\SysInternals\junction.exe $winlink $winexternalsTarget"
+        cmd //c "C:\SysInternals\junction.exe $winlink $winexternalsTarget"
     )
 }
 
@@ -110,17 +110,19 @@ function is_excluded()
 }
 
 
-git svn show-externals | grep -vE '#|^$' | \
-    sed 's/\(-r\)[ ]*\([0-9]\{1,\}\)/\1\2/' | \
+git svn show-externals | grep -vE '#|^$' |        
     while read svn_externals
-do
-
+do    
     number_fields="$(echo ${svn_externals}|awk '{print NF}')"
     case $number_fields in
         2)
-            local_directory="$(echo ${svn_externals} | awk '{print $1}' | sed 's,^/,,')"
+            local_directory="$(echo ${svn_externals} | awk '{print $2}' | sed 's,^/,,')"
             revision=""
-            remote_url="$(echo ${svn_externals} | awk '{print $2}')"
+            remote_url="$(echo ${svn_externals} | awk '{print $1}' | sed 's/^\///' )"
+            
+            echo $local_directory
+            echo $remote_url            
+
             ;;
         3)
             local_directory="$(echo ${svn_externals} | awk '{print $1}' | sed 's,^/,,')"
